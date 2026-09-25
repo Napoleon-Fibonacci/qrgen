@@ -1,5 +1,4 @@
-﻿{
-  "$schema": "https://openapi.vercel.sh/vercel.json",
+{
   "headers": [
     {
       "source": "/assets/fonts/(.*)",
@@ -8,7 +7,19 @@
       ]
     },
     {
-      "source": "/(assets/css|assets/js|vendor)/(.*)",
+      "source": "/assets/css/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=600, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/assets/js/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=600, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/vendor/(.*)",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=600, must-revalidate" }
       ]
