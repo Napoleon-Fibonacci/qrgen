@@ -1,0 +1,797 @@
+/* COST QR Generator - bergaya sama situs utama COST (cost.biz.id) */
+
+:root {
+  --paper: #f0f3f8;
+  --band: #e1e9f3;
+  --ink: #0e1c2e;
+  --ink-soft: #52647c;
+  --rule: rgba(14, 28, 46, 0.22);
+  --rule-strong: rgba(14, 28, 46, 0.35);
+  --grid-line: rgba(14, 28, 46, 0.09);
+  --card: #fbfdff;
+  --blue: #1a56b0;
+  --blue-deep: #14478c;
+  --scope: #0e9cc0;
+  --signal: #ffd23f;
+  --danger: #b3261e;
+  --danger-soft: #f9eceb;
+  --r-input: 6px;
+  --r-btn: 8px;
+  --r-card: 10px;
+  --shadow-card: 0 10px 28px rgba(14, 28, 46, 0.10);
+  --font-display: "Chakra Petch", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 16.5px;
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 28px 28px;
+  color: var(--ink);
+  line-height: 1.55;
+}
+
+/* ---------- Animasi dasar ---------- */
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes riseTilt {
+  from { opacity: 0; transform: translateY(18px) rotate(-0.6deg) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(100%); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes drawX {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes markPop {
+  from { opacity: 0; transform: scale(0.2); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes scan {
+  0% { transform: translateY(-46%); opacity: 0; }
+  12% { opacity: 0.55; }
+  50% { transform: translateY(46%); opacity: 0.55; }
+  62% { opacity: 0; }
+  100% { transform: translateY(-46%); opacity: 0; }
+}
+
+/* Entrance: kaskade sesuai urutan baca, sekali jalan saat load.
+   Semua cuma transform/opacity supaya jalan di compositor */
+.brand { animation: rise 0.55s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.brand::before { animation: drawX 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both; }
+.brand-mark rect {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: markPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.brand-mark rect:nth-child(1) { animation-delay: 0.14s; }
+.brand-mark rect:nth-child(2) { animation-delay: 0.22s; }
+.brand-mark rect:nth-child(3) { animation-delay: 0.27s; }
+.brand-mark rect:nth-child(4) { animation-delay: 0.32s; }
+.brand-mark rect:nth-child(5) { animation-delay: 0.37s; }
+.brand-mark rect:nth-child(6) { animation-delay: 0.42s; }
+.tab { animation: rise 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.tab:nth-child(1) { animation-delay: 0.14s; }
+.tab:nth-child(2) { animation-delay: 0.19s; }
+.tab:nth-child(3) { animation-delay: 0.24s; }
+.tab:nth-child(4) { animation-delay: 0.29s; }
+.tabpane.is-active { animation: rise 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+body.boot .tabpane.is-active { animation-delay: 0.2s; }
+.customize { animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.26s both; }
+.panel-preview { animation: riseTilt 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both; }
+.preview-card::before { animation: drawX 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both; }
+.history { animation: rise 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both; }
+.foot { animation: rise 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.34s both; }
+
+/* ---------- Header ---------- */
+
+.topbar {
+  max-width: 1080px;
+  margin: 20px auto 0;
+  padding: 0 24px;
+}
+
+.brand {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--card);
+  border: 1.5px solid var(--rule);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-card);
+  padding: 22px 20px 16px;
+  overflow: hidden;
+}
+
+/* Strip biru yang "menggambar" dari kiri saat masuk */
+.brand::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: var(--blue);
+  border-radius: 8px 8px 0 0;
+  transform-origin: left center;
+}
+
+.brand-mark {
+  width: 46px;
+  height: 46px;
+  flex: none;
+  border-radius: 9px;
+  border: 1.5px solid var(--rule-strong);
+}
+
+.brand h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.tagline {
+  margin: 2px 0 0;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+/* ---------- Layout ---------- */
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 24px;
+  align-items: start;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 20px 24px;
+}
+
+/* ---------- Form panel ---------- */
+
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  padding: 4px;
+  background: var(--band);
+  border: 1.5px solid var(--rule);
+  border-radius: 9px;
+  margin-bottom: 20px;
+}
+
+.tab {
+  border: 0;
+  background: transparent;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  padding: 8px 0;
+  border-radius: 6px;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background 0.15s, color 0.15s;
+}
+
+.tab:hover { color: var(--ink); background: rgba(14, 28, 46, 0.06); }
+
+.tab.is-active {
+  background: var(--blue);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.tabpane { padding: 4px 2px; }
+
+.field { margin-bottom: 16px; }
+
+.field label {
+  display: block;
+  font-weight: 700;
+  font-size: 14.5px;
+  margin-bottom: 6px;
+}
+
+.field input[type="text"],
+.field input[type="url"],
+.field input[type="tel"],
+.field input[type="email"],
+.field input[type="password"],
+.field select,
+.field textarea {
+  width: 100%;
+  padding: 10px 12px;
+  font-family: var(--font-body);
+  font-size: 15.5px;
+  color: var(--ink);
+  background: var(--card);
+  border: 1.5px solid var(--rule-strong);
+  border-radius: var(--r-input);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.field textarea { resize: vertical; }
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(26, 86, 176, 0.20);
+}
+
+.field input::placeholder,
+.field textarea::placeholder { color: var(--ink-soft); opacity: 1; }
+
+.field input:disabled { background: var(--band); color: var(--ink-soft); }
+
+.hint {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin: 6px 0 0;
+}
+
+.warn {
+  font-size: 13.5px;
+  color: var(--ink);
+  background: rgba(255, 210, 63, 0.35);
+  border: 1px solid rgba(14, 28, 46, 0.18);
+  border-radius: 7px;
+  padding: 8px 10px;
+  margin: 8px 0 0;
+}
+
+.pass-wrap { position: relative; }
+
+.pass-wrap input { padding-right: 106px; }
+
+.btn-mini-toggle {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 1.5px solid var(--rule);
+  background: var(--band);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.field-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.field-check label {
+  margin: 0;
+  font-weight: 400;
+  font-size: 15px;
+}
+
+.field-check input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--blue);
+}
+
+/* ---------- Kustom ---------- */
+
+.customize {
+  border-top: 1.5px solid var(--rule);
+  margin-top: 20px;
+  padding-top: 16px;
+}
+
+.customize h2,
+.history-head h2 {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin: 0 0 12px;
+  padding-bottom: 2px;
+  border-bottom: 4px solid var(--signal);
+}
+
+.color-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.color-row input[type="color"] {
+  width: 40px;
+  height: 32px;
+  padding: 2px;
+  border: 1.5px solid var(--rule-strong);
+  border-radius: 7px;
+  background: var(--card);
+  cursor: pointer;
+}
+
+.chip {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 1.5px solid var(--rule-strong);
+  background: var(--chip);
+  cursor: pointer;
+  padding: 0;
+  touch-action: manipulation;
+  transition: transform 0.12s;
+}
+
+.chip:active { transform: scale(0.88); }
+
+.chip.is-on { transform: scale(1.12); }
+
+.chip.is-on {
+  outline: 2.5px solid var(--blue);
+  outline-offset: 1.5px;
+}
+
+.hint.is-error {
+  color: var(--danger);
+}
+
+.hint.is-busy {
+  color: var(--blue-deep);
+}
+
+.logo-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Input file asli disembunyikan; tombolnya pakai <label> biar bisa di-style */
+.file-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  border: 0;
+}
+
+.btn-file {
+  border-style: dashed;
+  border-color: var(--blue);
+  color: var(--blue-deep);
+  background: rgba(26, 86, 176, 0.07);
+  min-width: 128px;
+  text-align: center;
+}
+
+.btn-file:hover {
+  border-style: solid;
+  background: rgba(26, 86, 176, 0.14);
+  transform: translateY(-1px);
+}
+
+.file-hidden:focus-visible + .btn-file {
+  outline: 2.5px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.file-name {
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Area drop: kasih umpan balik saat file ditarik ke sini */
+.logo-row.is-drag {
+  outline: 2px dashed var(--blue);
+  outline-offset: 6px;
+  border-radius: 8px;
+}
+
+.shape-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.shape-label {
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  margin-right: 2px;
+}
+
+.shape-row .btn-mini { min-width: 84px; }
+
+.shape-row .btn-mini.is-on {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #ffffff;
+}
+
+.logo-row input[type="file"] {
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  max-width: 280px;
+}
+
+/* ---------- Preview ---------- */
+
+.panel-preview {
+  position: sticky;
+  top: 20px;
+}
+
+.preview-card {
+  position: relative;
+  background: var(--card);
+  border: 1.5px solid var(--rule);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-card);
+  padding: 26px 20px 20px;
+  overflow: hidden;
+}
+
+.preview-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: var(--blue);
+  border-radius: 8px 8px 0 0;
+  transform-origin: left center;
+}
+
+.qr-stage {
+  position: relative;
+  width: min(100%, 320px);
+  aspect-ratio: 1 / 1;
+  margin: 0 auto;
+  display: grid;
+  place-items: center;
+}
+
+/* Scanline: isarat visual "QR ini bisa di-scan", cuma muncul saat QR tampil.
+   Dipindah pakai transform (bukan top) biar jalan di compositor, bukan repaint */
+.scanline {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  display: none;
+}
+
+.scanline::before {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 50%;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--blue), transparent);
+}
+
+.qr-stage.has-qr .scanline {
+  display: block;
+  animation: scan 3.8s ease-in-out 1.4s infinite;
+  will-change: transform, opacity;
+}
+
+.qr-empty p {
+  margin: 0;
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 15px;
+}
+
+.qr-target { width: 100%; }
+
+.qr-target canvas {
+  width: 100% !important;
+  height: auto !important;
+  display: block;
+  border: 1.5px solid var(--rule);
+  border-radius: 8px;
+}
+
+/* Promote ke compositor layer biar animasi QR + kartu ber-shadow mulus di Android */
+.qr-target,
+.preview-card {
+  backface-visibility: hidden;
+}
+
+.preview-card,
+.hist-item {
+  contain: content;
+}
+
+.qr-target.pop { animation: qrPop 0.25s ease; }
+
+@keyframes qrPop {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.scan-hint {
+  text-align: center;
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin: 10px 0 0;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.btn {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 11px 12px;
+  border-radius: var(--r-btn);
+  border: 1.5px solid var(--rule-strong);
+  background: var(--card);
+  color: var(--ink);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.12s, background 0.15s, border-color 0.15s;
+}
+
+.btn:hover { border-color: var(--ink); transform: translateY(-1px); }
+
+.btn:active { transform: translateY(1px) scale(0.98); }
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-primary {
+  grid-column: 1 / -1;
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #ffffff;
+}
+
+.btn-primary:hover { background: var(--blue-deep); border-color: var(--blue-deep); }
+
+.btn-mini {
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 5px 12px;
+}
+
+.btn-danger {
+  color: var(--danger);
+  background: var(--danger-soft);
+  border-color: transparent;
+}
+
+.btn-danger:hover { border-color: var(--danger); }
+
+/* Hasil hosting gambar */
+.host-result {
+  margin-top: 14px;
+  border-top: 1.5px solid var(--rule);
+  padding-top: 12px;
+}
+
+.host-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.host-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 10px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--band);
+  border: 1.5px solid var(--rule);
+  border-radius: var(--r-input);
+}
+
+.host-row .btn { flex: none; }
+
+/* ---------- Riwayat ---------- */
+
+.history {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 8px 24px 40px;
+}
+
+.history-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.confirm-clear {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 14.5px;
+  background: rgba(255, 210, 63, 0.35);
+  border: 1px solid rgba(14, 28, 46, 0.18);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 12px 0;
+}
+
+.hist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 14px 0 10px;
+}
+
+.hist-item {
+  background: var(--band);
+  border: 1.5px solid var(--rule);
+  border-radius: var(--r-card);
+  padding: 10px;
+  animation: rise 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+.hist-item img {
+  display: block;
+  width: 96px;
+  height: 96px;
+  border-radius: 6px;
+  border: 1.5px solid var(--rule);
+  background: var(--card);
+  margin: 0 auto 8px;
+}
+
+.hist-label {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hist-date {
+  margin: 2px 0 8px;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+
+.hist-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.hist-actions .btn { flex: 1; padding: 5px 4px; font-size: 12px; }
+
+.empty {
+  color: var(--ink-soft);
+  font-size: 14.5px;
+  margin: 10px 0;
+}
+
+/* ---------- Footer & toast ---------- */
+
+.foot {
+  border-top: 1.5px solid var(--rule);
+  background: var(--band);
+  text-align: center;
+  padding: 20px 24px 28px;
+}
+
+.foot p {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--ink-soft);
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%) translateY(8px);
+  background: var(--ink);
+  color: #ffffff;
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s, transform 0.25s;
+  z-index: 60;
+  max-width: min(90vw, 420px);
+  text-align: center;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+:focus-visible {
+  outline: 2.5px solid var(--blue);
+  outline-offset: 2px;
+}
+
+/* ---------- Mobile ---------- */
+
+@media (max-width: 899px) {
+  .layout { grid-template-columns: 1fr; padding: 16px 16px 0; }
+  .topbar { margin-top: 14px; padding: 0 16px; }
+  .panel-preview { position: static; }
+  body { padding-bottom: 32px; }
+  .toast { bottom: 24px; }
+  .history { padding: 8px 16px 32px; }
+  /* Tab 5 mode: font dikecilin biar tetap satu baris */
+  .tab { font-size: 12.5px; padding: 8px 2px; }
+  .file-name { max-width: 150px; }
+  .btn { min-height: 44px; }
+  /* Bayangan lebih tipis di HP = paint lebih murah */
+  .preview-card, .brand, .hist-item { box-shadow: 0 6px 16px rgba(14, 28, 46, 0.08); }
+  /* Tombol aksi tetap di dalam kartu, tepat di bawah QR */
+  .actions { grid-template-columns: repeat(2, 1fr); margin-top: 14px; }
+}
+
+/* Hemat baterai/performa HP: matikan semua animasi kalau user minta */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .scanline { display: none !important; }
+}

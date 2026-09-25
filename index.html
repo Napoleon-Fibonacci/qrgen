@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+  <title>COST QR Generator - Bikin QR Code Gratis buat Sekolah</title>
+  <meta name="description" content="Bikin QR code gratis buat link, WiFi, kontak, dan teks. Tanpa login, tanpa install, semua diproses di browser kamu. Buat warga sekolah, dari COST - Club of Science and Technology.">
+  <meta name="keywords" content="qr code generator, bikin qr code, qr code gratis, qr wifi sekolah, qr vcard, qr code generator sekolah">
+  <meta name="author" content="COST - Club of Science and Technology">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <meta name="theme-color" content="#1a56b0">
+  <meta name="color-scheme" content="light">
+  <meta name="format-detection" content="telephone=no">
+
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="COST QR Generator">
+  <meta property="og:title" content="COST QR Generator - Bikin QR Code Gratis">
+  <meta property="og:description" content="Bikin QR code buat link, WiFi, kontak, dan teks dalam hitungan detik. Gratis, tanpa login, semua diproses di browser.">
+  <meta property="og:image" content="assets/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="id_ID">
+  <!-- TODO: tambahkan og:url + canonical + sitemap setelah domain final diketahui -->
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="COST QR Generator - Bikin QR Code Gratis">
+  <meta name="twitter:description" content="Bikin QR code buat link, WiFi, kontak, dan teks. Gratis, tanpa login, semua diproses di browser.">
+  <meta name="twitter:image" content="assets/og-image.png">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "COST QR Generator",
+    "description": "Generator QR code gratis buat link, WiFi, kontak (vCard), dan teks. Tanpa login, semua diproses di browser.",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Any (browser)",
+    "inLanguage": "id-ID",
+    "publisher": { "@type": "Organization", "name": "COST - Club of Science and Technology" },
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "IDR" }
+  }
+  </script>
+  <link rel="preload" as="font" type="font/woff2" href="assets/fonts/chakra-petch-700.woff2" crossorigin>
+  <link rel="preload" as="font" type="font/woff2" href="assets/fonts/atkinson-hyperlegible-400.woff2" crossorigin>
+  <link rel="stylesheet" href="assets/css/fonts.css?v=9">
+  <link rel="stylesheet" href="assets/css/style.css?v=9">
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+        <rect width="32" height="32" rx="6" fill="#1a56b0"/>
+        <rect x="7" y="7" width="7" height="7" rx="1.5" fill="#fff"/>
+        <rect x="18" y="7" width="7" height="7" rx="1.5" fill="#fff"/>
+        <rect x="7" y="18" width="7" height="7" rx="1.5" fill="#fff"/>
+        <rect x="18" y="18" width="3" height="3" rx="1" fill="#fff"/>
+        <rect x="22" y="22" width="3" height="3" rx="1" fill="#fff"/>
+      </svg>
+      <div>
+        <h1>COST QR Generator</h1>
+        <p class="tagline">Club of Science and Technology. Bikin QR buat link, WiFi, kontak, dan teks. Gratis, tanpa login.</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout">
+
+    <section class="panel-form" aria-label="Form QR">
+      <div class="tabs" role="tablist" aria-label="Tipe konten QR">
+        <button class="tab is-active" role="tab" id="tab-url" data-type="url" aria-selected="true" aria-controls="panel-url" type="button">URL</button>
+        <button class="tab" role="tab" id="tab-text" data-type="text" aria-selected="false" aria-controls="panel-text" type="button">Teks</button>
+        <button class="tab" role="tab" id="tab-wifi" data-type="wifi" aria-selected="false" aria-controls="panel-wifi" type="button">WiFi</button>
+        <button class="tab" role="tab" id="tab-contact" data-type="contact" aria-selected="false" aria-controls="panel-contact" type="button">Kontak</button>
+        <button class="tab" role="tab" id="tab-image" data-type="image" aria-selected="false" aria-controls="panel-image" type="button">Gambar</button>
+      </div>
+
+      <form id="qr-form" novalidate>
+        <div class="tabpane is-active" role="tabpanel" id="panel-url" aria-labelledby="tab-url">
+          <div class="field">
+            <label for="url-input">Link / URL</label>
+            <input type="url" id="url-input" placeholder="sekolah.sch.id/absensi" inputmode="url" autocomplete="off">
+            <p class="hint">Tanpa https:// juga bisa, otomatis dilengkapi.</p>
+          </div>
+        </div>
+
+        <div class="tabpane" role="tabpanel" id="panel-text" aria-labelledby="tab-text" hidden>
+          <div class="field">
+            <label for="text-input">Teks</label>
+            <textarea id="text-input" rows="5" placeholder="Tulis pengumuman, catatan, atau teks apa aja"></textarea>
+            <p class="hint" id="text-counter">0 karakter</p>
+            <p class="warn" id="text-warn" hidden>Teksnya panjang banget. QR-nya jadi padat dan susah ke-scan dari jauh, apalagi buat banner.</p>
+          </div>
+        </div>
+
+        <div class="tabpane" role="tabpanel" id="panel-wifi" aria-labelledby="tab-wifi" hidden>
+          <div class="field">
+            <label for="wifi-ssid">Nama WiFi (SSID)</label>
+            <input type="text" id="wifi-ssid" placeholder="WiFi-Sekolah" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="wifi-pass">Password</label>
+            <div class="pass-wrap">
+              <input type="password" id="wifi-pass" placeholder="Password WiFi" autocomplete="off">
+              <button type="button" class="btn-mini-toggle" id="wifi-toggle" aria-pressed="false">Tampilkan</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="wifi-enc">Keamanan</label>
+            <select id="wifi-enc">
+              <option value="WPA" selected>WPA / WPA2</option>
+              <option value="WEP">WEP</option>
+              <option value="nopass">Tanpa password (terbuka)</option>
+            </select>
+          </div>
+          <div class="field field-check">
+            <input type="checkbox" id="wifi-hidden">
+            <label for="wifi-hidden">Jaringan tersembunyi</label>
+          </div>
+        </div>
+
+        <div class="tabpane" role="tabpanel" id="panel-contact" aria-labelledby="tab-contact" hidden>
+          <div class="field">
+            <label for="c-name">Nama</label>
+            <input type="text" id="c-name" placeholder="Bu Sari" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="c-tel">No. HP</label>
+            <input type="tel" id="c-tel" placeholder="0812-3456-789" inputmode="tel" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="c-email">Email</label>
+            <input type="email" id="c-email" placeholder="sari@sekolah.sch.id" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="c-title">Jabatan</label>
+            <input type="text" id="c-title" placeholder="Guru Matematika" autocomplete="off">
+          </div>
+        </div>
+
+        <div class="tabpane" role="tabpanel" id="panel-image" aria-labelledby="tab-image" hidden>
+          <div class="field">
+            <label for="image-input">Gambar</label>
+            <div class="logo-row" id="image-drop">
+              <input type="file" id="image-input" accept="image/*" class="file-hidden">
+              <label class="btn btn-file" for="image-input">Pilih gambar</label>
+              <span class="file-name" id="image-name">Belum ada file</span>
+            </div>
+            <p class="hint" id="image-status">Gambarnya di-upload ke hosting dulu, terus link-nya yang dimasukin ke QR.</p>
+            <div class="host-result" id="image-result" hidden>
+              <p class="hint">Link gambar (isi QR):</p>
+              <div class="host-row">
+                <input type="text" id="image-url" readonly>
+                <button type="button" class="btn btn-mini" id="image-copy">Salin</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <section class="customize" aria-label="Kustom tampilan QR">
+        <h2>Kustom</h2>
+        <div class="field">
+          <label for="color-input">Warna QR</label>
+          <div class="color-row">
+            <input type="color" id="color-input" value="#111111" aria-label="Pilih warna QR">
+            <button type="button" class="chip" data-color="#111111" style="--chip:#111111" aria-label="Warna hitam" aria-pressed="true"></button>
+            <button type="button" class="chip" data-color="#1a56b0" style="--chip:#1a56b0" aria-label="Warna biru" aria-pressed="false"></button>
+            <button type="button" class="chip" data-color="#0e1c2e" style="--chip:#0e1c2e" aria-label="Warna navy" aria-pressed="false"></button>
+            <button type="button" class="chip" data-color="#0e9cc0" style="--chip:#0e9cc0" aria-label="Warna cyan" aria-pressed="false"></button>
+            <button type="button" class="chip" data-color="#b3261e" style="--chip:#b3261e" aria-label="Warna merah" aria-pressed="false"></button>
+          </div>
+          <p class="warn" id="contrast-warn" hidden>Warna ini terlalu muda buat latar putih. QR-nya bisa susah ke-scan kamera.</p>
+        </div>
+        <div class="field">
+          <label for="logo-input">Logo di tengah (opsional)</label>
+          <div class="logo-row" id="logo-drop">
+            <input type="file" id="logo-input" accept="image/*" class="file-hidden">
+            <label class="btn btn-file" for="logo-input">Pilih logo</label>
+            <span class="file-name" id="logo-name">Belum ada file</span>
+            <button type="button" class="btn btn-mini btn-danger" id="logo-remove" hidden>Hapus</button>
+          </div>
+          <div class="shape-row" id="logo-shape" hidden>
+            <span class="shape-label">Bentuk logo</span>
+            <button type="button" class="btn btn-mini is-on" data-shape="circle" aria-pressed="true">Bulat</button>
+            <button type="button" class="btn btn-mini" data-shape="rounded" aria-pressed="false">Rounded</button>
+          </div>
+          <div class="shape-row" id="logo-fit" hidden>
+            <span class="shape-label">Ukuran logo</span>
+            <button type="button" class="btn btn-mini is-on" data-fit="cover" aria-pressed="true">Isi penuh</button>
+            <button type="button" class="btn btn-mini" data-fit="contain" aria-pressed="false">Utuh</button>
+          </div>
+          <p class="hint">Logo dapat ruang sendiri (ring putih), jadi gak nempel ke modul QR. Pilih Utuh kalau logo kamu ada teksnya dan gak mau kepotong.</p>
+        </div>
+      </section>
+    </section>
+
+    <aside class="panel-preview" aria-label="Preview QR">
+      <div class="preview-card">
+        <div class="qr-stage">
+          <div class="scanline" aria-hidden="true"></div>
+          <div class="qr-empty" id="qr-empty">
+            <p>Ketik apa aja,<br>QR-nya bakal muncul di sini.</p>
+          </div>
+          <div class="qr-target" id="qr-canvas" hidden></div>
+        </div>
+        <p class="scan-hint" id="scan-hint" hidden>Tes scan dulu pakai kamera HP sebelum dicetak.</p>
+        <div class="actions">
+          <button type="button" class="btn btn-primary" id="btn-png" disabled>Download PNG</button>
+          <button type="button" class="btn" id="btn-svg" disabled>SVG</button>
+          <button type="button" class="btn" id="btn-copy" disabled>Salin</button>
+          <button type="button" class="btn" id="btn-share" disabled>Bagikan</button>
+          <button type="button" class="btn" id="btn-host" disabled>Upload link</button>
+        </div>
+        <div class="host-result" id="host-result" hidden>
+          <p class="hint">Link gambar hasil hosting:</p>
+          <div class="host-row">
+            <input type="text" id="host-url" readonly>
+            <button type="button" class="btn btn-mini" id="host-copy">Salin</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+  </main>
+
+  <section class="history" aria-label="Riwayat QR">
+    <div class="history-head">
+      <h2>Riwayat</h2>
+      <button type="button" class="btn btn-mini" id="hist-clear" hidden>Hapus semua</button>
+    </div>
+    <div class="confirm-clear" id="confirm-clear" hidden>
+      <span>Hapus semua riwayat di browser ini?</span>
+      <button type="button" class="btn btn-mini btn-danger" id="hist-clear-yes">Ya, hapus</button>
+      <button type="button" class="btn btn-mini" id="hist-clear-no">Batal</button>
+    </div>
+    <div class="hist-grid" id="hist-grid"></div>
+    <p class="empty" id="hist-empty">Belum ada QR yang dibuat di browser ini.</p>
+    <p class="hint">Riwayat cuma tersimpan di browser ini. Ganti device atau hapus data browser = hilang.</p>
+  </section>
+
+  <footer class="foot">
+    <p>COST QR Generator. Tanpa login, tanpa tracking. Semua diproses di browser kamu.</p>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <noscript><p style="padding:16px">Aktifin JavaScript buat pakai generator ini.</p></noscript>
+
+  <script src="vendor/qr-code-styling.min.js"></script>
+  <script src="assets/js/app.js?v=9"></script>
+</body>
+</html>
