@@ -47,8 +47,8 @@
   </script>
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/chakra-petch-700.woff2" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/atkinson-hyperlegible-400.woff2" crossorigin>
-  <link rel="stylesheet" href="assets/css/fonts.css?v=9">
-  <link rel="stylesheet" href="assets/css/style.css?v=9">
+  <link rel="stylesheet" href="assets/css/fonts.css?v=10">
+  <link rel="stylesheet" href="assets/css/style.css?v=10">
 </head>
 <body>
 
@@ -150,6 +150,11 @@
               <input type="file" id="image-input" accept="image/*" class="file-hidden">
               <label class="btn btn-file" for="image-input">Pilih gambar</label>
               <span class="file-name" id="image-name">Belum ada file</span>
+            </div>
+            <div class="upload-progress" id="upload-progress" hidden aria-live="polite">
+              <div class="load-grid" id="load-grid" aria-hidden="true"></div>
+              <div class="load-bar" aria-hidden="true"><span></span></div>
+              <p class="load-text">Mengunggah gambar<span class="dots"><i>.</i><i>.</i><i>.</i></span></p>
             </div>
             <p class="hint" id="image-status">Gambarnya di-upload ke hosting dulu, terus link-nya yang dimasukin ke QR.</p>
             <div class="host-result" id="image-result" hidden>
@@ -253,6 +258,6 @@
   <noscript><p style="padding:16px">Aktifin JavaScript buat pakai generator ini.</p></noscript>
 
   <script src="vendor/qr-code-styling.min.js"></script>
-  <script src="assets/js/app.js?v=9"></script>
+  <script src="assets/js/app.js?v=10"></script>
 </body>
 </html>

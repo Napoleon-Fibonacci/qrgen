@@ -256,6 +256,11 @@ body.boot .tabpane.is-active { animation-delay: 0.2s; }
   margin: 6px 0 0;
 }
 
+/* Hint kosong tidak perlu ruang (dipakai saat loader tampil) */
+.hint:empty {
+  display: none;
+}
+
 .warn {
   font-size: 13.5px;
   color: var(--ink);
@@ -368,6 +373,90 @@ body.boot .tabpane.is-active { animation-delay: 0.2s; }
 
 .hint.is-busy {
   color: var(--blue-deep);
+}
+
+/* ---------- Animasi proses upload (mode Gambar) ---------- */
+
+.upload-progress {
+  margin-top: 12px;
+  padding: 14px;
+  background: var(--band);
+  border: 1.5px solid var(--rule);
+  border-radius: var(--r-card);
+}
+
+.load-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+  width: 92px;
+  margin: 0 auto 12px;
+}
+
+.load-grid i {
+  display: block;
+  aspect-ratio: 1 / 1;
+  border-radius: 3px;
+  background: var(--blue);
+  opacity: 0.15;
+  animation: fillPulse 1.4s ease-in-out infinite;
+}
+
+.load-grid i.on {
+  opacity: 1;
+  animation: none;
+}
+
+@keyframes fillPulse {
+  0%, 100% { opacity: 0.15; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(0.84); }
+}
+
+.load-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(14, 28, 46, 0.12);
+  overflow: hidden;
+}
+
+.load-bar span {
+  display: block;
+  width: 40%;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--blue);
+  animation: barSlide 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes barSlide {
+  0% { transform: translateX(-110%); }
+  100% { transform: translateX(260%); }
+}
+
+.load-text {
+  margin: 10px 0 0;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--ink-soft);
+}
+
+.dots i {
+  font-style: normal;
+  animation: dotBlink 1.2s infinite;
+}
+
+.dots i:nth-child(2) { animation-delay: 0.2s; }
+.dots i:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes dotBlink {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1; }
+}
+
+/* Saat upload jalan: kunci area pilih gambar biar tak dobel */
+.logo-row.is-busy {
+  opacity: 0.55;
+  pointer-events: none;
 }
 
 .logo-row {
@@ -794,4 +883,8 @@ body.boot .tabpane.is-active { animation-delay: 0.2s; }
     transition: none !important;
   }
   .scanline { display: none !important; }
+  /* Loader tanpa animasi: sembunyikan bagian yang cuma masuk akal kalau bergerak */
+  .load-bar { display: none !important; }
+  .load-text .dots { display: none !important; }
+  .load-grid i { opacity: 0.85 !important; }
 }

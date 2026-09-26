@@ -548,6 +548,29 @@
 
   /* ---------- Upload gambar (mode Gambar) ---------- */
 
+  // Grid loader: 25 kotak, 4 sudut solid (motif QR), sisanya berdenyut bergantian
+  (function buildLoadGrid() {
+    var grid = $('#load-grid');
+    if (!grid) return;
+    var corner = { 0: 1, 4: 1, 20: 1, 24: 1 };
+    for (var i = 0; i < 25; i++) {
+      var cell = document.createElement('i');
+      if (corner[i]) {
+        cell.className = 'on';
+      } else {
+        cell.style.animationDelay = (((i % 5) + Math.floor(i / 5)) * 0.08).toFixed(2) + 's';
+      }
+      grid.appendChild(cell);
+    }
+  })();
+
+  function setUploadBusy(busy) {
+    $('#upload-progress').hidden = !busy;
+    $('#image-drop').classList.toggle('is-busy', busy);
+    $('#image-input').disabled = busy;
+    $('#panel-image').setAttribute('aria-busy', busy ? 'true' : 'false');
+  }
+
   function setImageStatus(text, kind) {
     var el = $('#image-status');
     el.textContent = text;
@@ -590,11 +613,13 @@
     $('#image-name').textContent = file.name;
     $('#image-result').hidden = true;
     state.imageUrl = null;
-    setImageStatus('Mengunggah...', 'busy');
+    setImageStatus('');
+    setUploadBusy(true);
     apply();
 
     prepareImage(file, function (dataUrl) {
       if (!dataUrl) {
+        setUploadBusy(false);
         setImageStatus('Gagal membaca gambar', 'error');
         return;
       }
@@ -618,9 +643,11 @@
         state.imageUrl = data.url;
         $('#image-url').value = data.url;
         $('#image-result').hidden = false;
+        setUploadBusy(false);
         setImageStatus('Berhasil di-upload. Link-nya jadi isi QR.');
         apply();
       }).catch(function (err) {
+        setUploadBusy(false);
         setImageStatus('Upload gagal: ' + ((err && err.message) || 'coba lagi'), 'error');
         apply();
       });
