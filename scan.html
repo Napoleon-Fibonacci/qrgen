@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+  <title>Pembaca QR &amp; Barcode - COST QR Generator</title>
+  <meta name="description" content="Pindai QR code dan barcode lewat kamera, berkas gambar, atau tautan. Gratis, tanpa login, semua diproses di browser kamu.">
+  <meta name="author" content="COST - Club of Science and Technology">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#1a56b0">
+  <meta name="color-scheme" content="light">
+
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+
+  <link rel="preload" as="font" type="font/woff2" href="assets/fonts/chakra-petch-700.woff2" crossorigin>
+  <link rel="preload" as="font" type="font/woff2" href="assets/fonts/atkinson-hyperlegible-400.woff2" crossorigin>
+  <link rel="stylesheet" href="assets/css/fonts.css?v=10">
+  <link rel="stylesheet" href="assets/css/style.css?v=14">
+  <link rel="stylesheet" href="assets/css/scan.css?v=3">
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+        <rect width="32" height="32" rx="6" fill="#1a56b0"/>
+        <rect x="7" y="7" width="7" height="7" rx="1.5" fill="#fff"/>
+        <rect x="18" y="7" width="7" height="7" rx="1.5" fill="#fff"/>
+        <rect x="7" y="18" width="7" height="7" rx="1.5" fill="#fff"/>
+        <rect x="18" y="18" width="3" height="3" rx="1" fill="#fff"/>
+        <rect x="22" y="22" width="3" height="3" rx="1" fill="#fff"/>
+      </svg>
+      <div>
+        <h1>Pembaca QR &amp; Barcode</h1>
+        <p class="tagline">Dari COST. Pindai lewat kamera, berkas gambar, atau tautan. Semua diproses di browser kamu.</p>
+      </div>
+      <nav class="topnav" aria-label="Pindah halaman">
+        <a class="navbtn" href="index.html">Buat QR</a>
+        <a class="navbtn" href="scan.html" aria-current="page">Pindai</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="layout">
+
+    <section class="panel-form" aria-label="Pemindaian kode">
+      <div class="tabs" role="tablist" aria-label="Cara memindai">
+        <button class="tab is-active" role="tab" id="tab-cam" data-mode="cam" aria-selected="true" aria-controls="panel-cam" type="button">Kamera</button>
+        <button class="tab" role="tab" id="tab-file" data-mode="file" aria-selected="false" aria-controls="panel-file" type="button">Berkas</button>
+        <button class="tab" role="tab" id="tab-url" data-mode="url" aria-selected="false" aria-controls="panel-url" type="button">Tautan</button>
+      </div>
+
+      <div class="tabpane is-active" role="tabpanel" id="panel-cam" aria-labelledby="tab-cam">
+        <button type="button" class="btn btn-primary" id="cam-toggle">Mulai kamera</button>
+        <p class="hint">Kamera hanya bisa jalan di HTTPS atau localhost. Gambar diproses di perangkatmu, tidak dikirim ke mana pun.</p>
+      </div>
+
+      <div class="tabpane" role="tabpanel" id="panel-file" hidden>
+        <div class="field">
+          <label for="file-input">Gambar</label>
+          <label class="dropzone" for="file-input" id="file-drop">
+            <input type="file" id="file-input" accept="image/*" class="file-hidden">
+            <svg class="dropzone-icon" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M6 13v11a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3V13"/>
+              <path d="M16 5v13"/>
+              <path d="M11 13l5 5 5-5"/>
+            </svg>
+            <span class="dropzone-title">Pilih gambar atau seret ke sini</span>
+            <span class="file-name" id="file-name">Belum ada file</span>
+          </label>
+          <p class="hint">JPG, PNG, atau WebP. Foto layar atau hasil unduhan juga bisa.</p>
+        </div>
+      </div>
+
+      <div class="tabpane" role="tabpanel" id="panel-url" hidden>
+        <div class="field">
+          <label for="url-input">Tautan gambar</label>
+          <input type="url" id="url-input" placeholder="https://contoh.sch.id/qr.png" inputmode="url" autocomplete="off">
+          <p class="hint">Situs asal harus mengizinkan gambar diambil dari halaman lain. Kalau tidak, simpan gambarnya lalu pilih lewat Berkas.</p>
+        </div>
+        <button type="button" class="btn btn-primary" id="url-go">Pindai tautan</button>
+      </div>
+
+      <section class="customize" aria-label="Hasil pemindaian">
+        <div class="results-head">
+          <h2>Hasil</h2>
+          <button type="button" class="btn btn-mini" id="res-clear" hidden>Hapus semua</button>
+        </div>
+        <ul class="result-list" id="result-list"></ul>
+        <p class="empty" id="res-empty">Belum ada yang terbaca. Arahkan kamera ke kode, atau pilih gambar.</p>
+      </section>
+    </section>
+
+    <aside class="panel-preview" aria-label="Area pindai">
+      <div class="preview-card">
+        <div class="scan-stage" id="scan-stage">
+          <div class="scan-frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div id="qr-reader"></div>
+          <img id="stage-img" alt="Gambar yang sedang dipindai" hidden>
+          <div class="qr-empty" id="stage-empty"><p>Kamera mati.<br>Tekan Mulai kamera.</p></div>
+        </div>
+        <p class="hint" id="stage-status" hidden aria-live="polite"></p>
+      </div>
+    </aside>
+
+  </main>
+
+  <footer class="foot">
+    <p>COST QR Generator. Tanpa login, tanpa tracking. Semua diproses di browser kamu.</p>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <noscript><p style="padding:16px">Aktifin JavaScript buat pakai pembaca ini.</p></noscript>
+
+  <script src="vendor/html5-qrcode.min.js"></script>
+  <script src="assets/js/scan.js?v=1"></script>
+</body>
+</html>

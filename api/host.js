@@ -41,9 +41,24 @@ module.exports = async function handler(req, res) {
     return;
   }
 
+  // Tolak permintaan lintas situs dari browser (embed/link checker jahat).
+  // Catatan: ini pelindung tingkat browser; klien tanpa browser (curl)
+  // tetap bisa lewat tanpa autentikasi, jadi jangan andalkan ini sendirian.
+  const site = req.headers['sec-fetch-site'];
+  if (site && site !== 'same-origin' && site !== 'none') {
+    res.status(403).json({ ok: false, error: 'Permintaan lintas situs ditolak' });
+    return;
+  }
+
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
     const dataUrl = String(body.image || '');
+    // Batas kasar: base64 3 juta karakter ~ 2,2 MB biner, jauh di bawah
+    // limit body Vercel (4,5 MB) supaya endpoint tidak jadi tempat numpuk file.
+    if (dataUrl.length > 3000000) {
+      res.status(413).json({ ok: false, error: 'Gambar terlalu besar (maksimal sekitar 2 MB)' });
+      return;
+    }
     const m = dataUrl.match(/^data:image\/(png|jpe?g|webp|gif);base64,(.+)$/);
     if (!m) {
       res.status(400).json({ ok: false, error: 'Payload gambar tidak valid' });
