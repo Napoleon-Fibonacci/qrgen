@@ -22,6 +22,9 @@ Catatan: fitur "Upload link" tidak jalan lewat static server biasa, karena butuh
 1. Push folder ini ke repo GitHub, atau buka https://vercel.com/new lalu drag & drop foldernya.
 2. Tidak ada build step dan tidak ada environment variable.
 3. Folder `api/` otomatis kebaca sebagai Serverless Function.
+4. URL bersih aktif: `/index.html` diarahkan ke `/`, `/scan.html` ke `/scan`
+   (setting `cleanUrls` + `redirects` di `vercel.json`). Link internal tetap
+   pakai `.html` supaya juga jalan saat file dibuka langsung lewat `file://`.
 
 Atau lewat CLI:
 

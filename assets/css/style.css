@@ -28,6 +28,10 @@ html { -webkit-text-size-adjust: 100%; }
 
 body {
   margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
   font-family: var(--font-body);
   font-size: 16.5px;
   background-color: var(--paper);
@@ -848,6 +852,7 @@ body.boot .tabpane.is-active { animation-delay: 0.2s; }
 /* ---------- Footer & toast ---------- */
 
 .foot {
+  margin-top: auto;
   border-top: 1.5px solid var(--rule);
   background: var(--band);
   text-align: center;
