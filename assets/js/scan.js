@@ -150,7 +150,7 @@
         { fps: 10, qrbox: function () { return { width: box, height: box }; } },
         function (text, res) {
           var d = onDetect(text, readFormat(res));
-          if (d.isNew) status('Terbaca: ' + d.label);
+          if (d.isNew) status('Terbaca: ' + d.label + safeTag(d.safe));
         },
         function () { }
       )
@@ -201,11 +201,57 @@
 
   /* ---------- Deteksi ---------- */
 
+  // Periksa keamanan link hasil pindai. Semua cek jalan lokal di browser,
+  // tidak ada data yang dikirim ke mana pun.
+  var SHORTENERS = ['bit.ly', 'tinyurl.com', 't.co', 'goo.gl', 'is.gd', 'ow.ly',
+    'cutt.ly', 'cutt.us', 's.id', 'v.gd', 'rb.gy', 'shorturl.at', 'lnkd.in'];
+
+  function linkSafety(text) {
+    var t = String(text).trim();
+    var hasScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(t) ||
+      /^(javascript|data|vbscript|mailto|tel):/i.test(t);
+    var looksDomain = /^(https?:\/\/|www\.)?[a-z0-9][a-z0-9-]*(\.[a-z0-9][a-z0-9-]*)+([/:?#][^\s]*)?$/i.test(t);
+    if (!hasScheme && !looksDomain) return null;
+
+    var u;
+    try { u = new URL(hasScheme ? t : 'https://' + t); }
+    catch (e) { return { level: 'warn', why: ['URL tidak valid'] }; }
+
+    var scheme = u.protocol.replace(/:$/, '');
+    if (scheme === 'javascript' || scheme === 'data' || scheme === 'vbscript') {
+      return { level: 'bad', why: ['Skrip langsung (' + scheme + ':), jangan dibuka'] };
+    }
+    if (scheme === 'mailto' || scheme === 'tel') {
+      return { level: 'ok', why: ['Link kontak (' + scheme + ':)'] };
+    }
+    if (scheme !== 'http' && scheme !== 'https') {
+      return { level: 'warn', why: ['Skema tidak umum (' + scheme + ':)'] };
+    }
+
+    var host = u.hostname.toLowerCase();
+    var why = [];
+    if (scheme === 'http') why.push('Tanpa enkripsi (HTTP)');
+    if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host) || host.indexOf(':') > -1) why.push('Pakai alamat IP, bukan nama domain');
+    if (host.indexOf('xn--') > -1) why.push('Domain punycode, mirip domain lain');
+    if (t.indexOf('@') > -1) why.push('Ada "@" di link, bisa menyembunyikan domain asli');
+    if (host.split('.').length > 4) why.push('Subdomain bertumpuk');
+    if (u.port && u.port !== '80' && u.port !== '443') why.push('Port tidak lazim (' + u.port + ')');
+    if (SHORTENERS.indexOf(host) > -1) why.push('Pemendek link, tujuan asli disembunyikan');
+    if (host.indexOf('.') === -1) why.push('Tanpa domain (.id dll)');
+    if (why.length) return { level: 'warn', why: why };
+    return { level: 'ok', why: ['HTTPS, pola link wajar'] };
+  }
+
+  function safeTag(s) {
+    if (!s || s.level === 'ok') return '';
+    return ' — ' + (s.level === 'bad' ? 'Bahaya' : 'Waspada');
+  }
+
   function onDetect(text, formatName) {
     var label = fmtLabel(formatName);
     var isNew = addResult(text, label);
     if (isNew) flash();
-    return { label: label, isNew: isNew };
+    return { label: label, isNew: isNew, safe: linkSafety(text) };
   }
 
   function addResult(text, label) {
@@ -218,53 +264,122 @@
     return true;
   }
 
+  function fmtTime(t) {
+    return new Date(t).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function badgeEl(safe) {
+    var b = document.createElement('span');
+    b.className = 'result-safe is-' + safe.level;
+    b.textContent = safe.level === 'ok' ? 'Aman' : safe.level === 'warn' ? 'Waspada' : 'Bahaya';
+    b.title = safe.why.join('. ');
+    return b;
+  }
+
+  function openBtn(text) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'btn btn-mini';
+    b.textContent = 'Buka';
+    b.addEventListener('click', function () {
+      window.open(text, '_blank', 'noopener');
+    });
+    return b;
+  }
+
+  function copyBtn(text) {
+    var cp = document.createElement('button');
+    cp.type = 'button';
+    cp.className = 'btn btn-mini';
+    cp.textContent = 'Salin';
+    cp.addEventListener('click', function () {
+      navigator.clipboard.writeText(text)
+        .then(function () { toast('Hasil ke-copy'); })
+        .catch(function () { toast('Gagal copy, salin manual'); });
+    });
+    return cp;
+  }
+
   function renderResults() {
     var list = $('#result-list');
     list.innerHTML = '';
-    results.forEach(function (item) {
+
+    if (results.length) {
+      var hero = results[0];
+      var heroSafe = linkSafety(hero.text);
       var li = document.createElement('li');
-      li.className = 'result-item';
+      li.className = 'result-hero';
 
-      var main = document.createElement('div');
-      main.className = 'result-main';
-      var kind = document.createElement('span');
-      kind.className = 'result-kind';
-      kind.textContent = item.label;
-      var txt = document.createElement('span');
-      txt.className = 'result-text';
-      txt.textContent = item.text;
-      txt.title = item.text;
-      main.appendChild(kind);
-      main.appendChild(txt);
-      li.appendChild(main);
+      var meta = document.createElement('div');
+      meta.className = 'meta';
+      var hKind = document.createElement('span');
+      hKind.className = 'result-kind';
+      hKind.textContent = hero.label;
+      var hTime = document.createElement('span');
+      hTime.className = 'time';
+      hTime.textContent = fmtTime(hero.t);
+      meta.appendChild(hKind);
+      meta.appendChild(hTime);
+      li.appendChild(meta);
 
-      var acts = document.createElement('div');
-      acts.className = 'result-actions';
+      var payload = document.createElement('p');
+      payload.className = 'payload';
+      payload.textContent = hero.text;
+      li.appendChild(payload);
 
-      if (/^https?:\/\//i.test(item.text)) {
-        var a = document.createElement('a');
-        a.className = 'btn btn-mini';
-        a.href = item.text;
-        a.target = '_blank';
-        a.rel = 'noopener noreferrer';
-        a.textContent = 'Buka';
-        acts.appendChild(a);
+      if (heroSafe) {
+        var verdict = document.createElement('div');
+        verdict.className = 'verdict';
+        verdict.appendChild(badgeEl(heroSafe));
+        var why = document.createElement('span');
+        why.className = 'result-why';
+        why.textContent = heroSafe.why.join('. ');
+        verdict.appendChild(why);
+        li.appendChild(verdict);
       }
 
-      var cp = document.createElement('button');
-      cp.type = 'button';
-      cp.className = 'btn btn-mini';
-      cp.textContent = 'Salin';
-      cp.addEventListener('click', function () {
-        navigator.clipboard.writeText(item.text)
-          .then(function () { toast('Hasil ke-copy'); })
-          .catch(function () { toast('Gagal copy, salin manual'); });
-      });
-      acts.appendChild(cp);
-
-      li.appendChild(acts);
+      var hActs = document.createElement('div');
+      hActs.className = 'result-actions';
+      if (/^https?:\/\//i.test(hero.text)) hActs.appendChild(openBtn(hero.text));
+      hActs.appendChild(copyBtn(hero.text));
+      li.appendChild(hActs);
       list.appendChild(li);
-    });
+
+      results.slice(1).forEach(function (item, idx) {
+        var safe = linkSafety(item.text);
+        var rowLi = document.createElement('li');
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'result-row';
+        b.title = 'Tampilkan sebagai hasil terbaru';
+
+        var kind = document.createElement('span');
+        kind.className = 'result-kind';
+        kind.textContent = item.label;
+        b.appendChild(kind);
+
+        var time = document.createElement('span');
+        time.className = 'time';
+        time.textContent = fmtTime(item.t);
+        b.appendChild(time);
+
+        var txt = document.createElement('span');
+        txt.className = 'result-text';
+        txt.textContent = item.text;
+        b.appendChild(txt);
+
+        if (safe) b.appendChild(badgeEl(safe));
+
+        b.addEventListener('click', function () {
+          var picked = results.splice(idx + 1, 1)[0];
+          results.unshift(picked);
+          renderResults();
+        });
+
+        rowLi.appendChild(b);
+        list.appendChild(rowLi);
+      });
+    }
 
     var empty = results.length === 0;
     $('#res-empty').hidden = !empty;
@@ -310,7 +425,7 @@
         var text = r && (r.decodedText || r.text);
         if (!text) throw new Error('empty');
         var d = onDetect(text, readFormat(r));
-        status('Terbaca: ' + d.label);
+        status('Terbaca: ' + d.label + safeTag(d.safe));
       })
       .catch(function () {
         status('Tidak ada kode terbaca di ' + where + '.', 'error');

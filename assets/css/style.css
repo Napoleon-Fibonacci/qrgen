@@ -109,6 +109,7 @@ body.boot .tabpane.is-active { animation-delay: 0.2s; }
 /* ---------- Header ---------- */
 
 .topbar {
+  width: 100%;
   max-width: 1080px;
   margin: 20px auto 0;
   padding: 0 24px;
@@ -199,6 +200,7 @@ body.boot .tabpane.is-active { animation-delay: 0.2s; }
 /* ---------- Layout ---------- */
 
 .layout {
+  width: 100%;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 380px;
   gap: 24px;
@@ -770,9 +772,11 @@ body.boot .tabpane.is-active { animation-delay: 0.2s; }
 /* ---------- Riwayat ---------- */
 
 .history {
+  width: 100%;
   max-width: 1080px;
   margin: 0 auto;
   padding: 8px 24px 40px;
+  text-align: left;
 }
 
 .history-head {
@@ -797,7 +801,8 @@ body.boot .tabpane.is-active { animation-delay: 0.2s; }
 
 .hist-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fill, 157px);
+  justify-content: start;
   gap: 12px;
   margin: 14px 0 10px;
 }
@@ -901,7 +906,7 @@ body.boot .tabpane.is-active { animation-delay: 0.2s; }
 /* ---------- Mobile ---------- */
 
 @media (max-width: 899px) {
-  .layout { grid-template-columns: 1fr; padding: 16px 16px 0; }
+  .layout { grid-template-columns: minmax(0, 1fr); padding: 16px 16px 0; }
   .topbar { margin-top: 14px; padding: 0 16px; }
   .panel-preview { position: static; }
   body { padding-bottom: 32px; }
@@ -921,6 +926,12 @@ body.boot .tabpane.is-active { animation-delay: 0.2s; }
 @media (max-width: 560px) {
   .topnav { margin-left: 0; width: 100%; }
   .navbtn { flex: 1; text-align: center; padding: 10px 12px; min-height: 44px; }
+}
+
+/* Layar sangat sempit: judul tetap satu baris di kedua halaman,
+   supaya tinggi kartu header tidak beda saat pindah halaman */
+@media (max-width: 355px) {
+  .brand h1 { font-size: 16px; }
 }
 
 /* Hemat baterai/performa HP: matikan semua animasi kalau user minta */

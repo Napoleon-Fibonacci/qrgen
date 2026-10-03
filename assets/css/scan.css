@@ -1,22 +1,38 @@
 /* COST Pembaca QR & Barcode - lanjutan dari style.css (token COST yang sama) */
 
-.tabs { grid-template-columns: repeat(3, 1fr); }
+/* Bar mode: muat pas isi 3 tombol, rata tengah di panel */
+.tabs {
+  grid-template-columns: repeat(3, max-content);
+  width: max-content;
+  max-width: 100%;
+  margin-inline: auto;
+}
 
-.tabpane .btn-primary { width: 100%; }
+.tab { padding: 8px 16px; }
+
+/* Isi panel kiri: rata tengah semua */
+.tabpane {
+  padding-left: 0;
+  padding-right: 0;
+  text-align: center;
+}
+
+.tabpane .btn-primary { width: 50%; padding: 11px 22px; }
 
 /* ---------- Dropbox pilih berkas ---------- */
 
 .field label.dropzone {
   display: flex;
   flex-direction: column;
+  width: min(100%, 260px);
+  aspect-ratio: 1 / 1;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  margin: 0;
+  margin: 0 auto;
   font-weight: 400;
   font-size: 14px;
   padding: 20px 14px;
-  min-height: 112px;
   border: 1.5px dashed var(--blue);
   border-radius: var(--r-card);
   background: rgba(26, 86, 176, 0.05);
@@ -26,6 +42,10 @@
 }
 
 .field label.dropzone:hover { background: rgba(26, 86, 176, 0.11); }
+
+@media (min-width: 900px) {
+  .field label.dropzone { width: min(100%, 340px); }
+}
 
 .field label.dropzone.is-drag {
   background: rgba(26, 86, 176, 0.16);
@@ -122,12 +142,14 @@
   padding: 24px 16px;
 }
 
+#stage-status { text-align: center; }
+
 /* ---------- Hasil ---------- */
 
 .results-head {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: baseline;
+  justify-content: center;
   gap: 10px;
 }
 
@@ -135,28 +157,6 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.result-item {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 10px;
-  background: var(--band);
-  border: 1.5px solid var(--rule);
-  border-radius: var(--r-card);
-  padding: 8px 10px;
-}
-
-.result-main {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1 1 170px;
-  min-width: 0;
 }
 
 .result-kind {
@@ -180,15 +180,126 @@
 
 .result-actions {
   display: flex;
+  align-items: center;
   gap: 6px;
-  margin-left: auto;
 }
 
 .result-actions .btn { text-decoration: none; }
 
+/* Hasil terbaru: kartu terang dengan bilah biru, isi paling lengkap */
+.result-hero {
+  background: var(--card);
+  border: 1.5px solid var(--rule);
+  border-top: 4px solid var(--blue);
+  border-radius: var(--r-card);
+  padding: 16px 18px;
+  margin-bottom: 10px;
+}
+
+.result-hero .meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.result-hero .time {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+
+.result-hero .payload {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  margin: 0 0 12px;
+}
+
+.result-hero .verdict {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.result-hero .result-why {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.result-hero .result-actions {
+  margin: 0;
+  gap: 8px;
+}
+
+/* Arsip: baris satu baris, garis rambut, klik untuk tampilkan sebagai hasil terbaru */
+.result-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  padding: 10px 4px;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.result-row:hover { background: rgba(26, 86, 176, 0.06); }
+.result-row:focus-visible { outline: 2.5px solid var(--blue); outline-offset: -2px; }
+
+.result-row .time {
+  flex: none;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.result-row .result-text { flex: 1 1 auto; }
+
+.result-safe {
+  flex: none;
+  font-family: var(--font-display);
+  font-size: 11.5px;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 2px 9px;
+}
+
+.result-safe.is-ok { color: var(--blue-deep); background: rgba(26, 86, 176, 0.12); }
+.result-safe.is-warn { color: #7a5c00; background: rgba(255, 210, 63, 0.45); }
+.result-safe.is-bad { color: var(--danger); background: var(--danger-soft); }
+
+/* Kosong: bingkai empat sudut, undangan buat mulai memindai */
+#res-empty {
+  position: relative;
+  margin: 14px 0;
+  padding: 30px 24px;
+  text-align: center;
+}
+
+#res-empty i {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid rgba(26, 86, 176, 0.45);
+}
+
+#res-empty i:nth-child(1) { top: 0; left: 0; border-right: 0; border-bottom: 0; }
+#res-empty i:nth-child(2) { top: 0; right: 0; border-left: 0; border-bottom: 0; }
+#res-empty i:nth-child(3) { bottom: 0; left: 0; border-right: 0; border-top: 0; }
+#res-empty i:nth-child(4) { bottom: 0; right: 0; border-left: 0; border-top: 0; }
+
+#res-empty p { margin: 0; }
+
 /* ---------- Mobile ---------- */
 
 @media (max-width: 899px) {
-  .panel-preview { order: -1; }
-  .result-actions { margin-left: 0; }
+  .panel-preview { order: 1; }
 }

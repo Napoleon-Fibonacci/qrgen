@@ -18,8 +18,8 @@
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/chakra-petch-700.woff2" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/atkinson-hyperlegible-400.woff2" crossorigin>
   <link rel="stylesheet" href="assets/css/fonts.css?v=10">
-  <link rel="stylesheet" href="assets/css/style.css?v=15">
-  <link rel="stylesheet" href="assets/css/scan.css?v=3">
+  <link rel="stylesheet" href="assets/css/style.css?v=25">
+  <link rel="stylesheet" href="assets/css/scan.css?v=19">
 </head>
 <body>
 
@@ -90,7 +90,10 @@
           <button type="button" class="btn btn-mini" id="res-clear" hidden>Hapus semua</button>
         </div>
         <ul class="result-list" id="result-list"></ul>
-        <p class="empty" id="res-empty">Belum ada yang terbaca. Arahkan kamera ke kode, atau pilih gambar.</p>
+        <div class="empty" id="res-empty">
+          <i></i><i></i><i></i><i></i>
+          <p>Belum ada yang terbaca.<br>Arahkan kamera ke kode, atau pilih gambar.</p>
+        </div>
       </section>
     </section>
 
@@ -117,6 +120,6 @@
   <noscript><p style="padding:16px">Aktifin JavaScript buat pakai pembaca ini.</p></noscript>
 
   <script src="vendor/html5-qrcode.min.js"></script>
-  <script src="assets/js/scan.js?v=1"></script>
+  <script src="assets/js/scan.js?v=5"></script>
 </body>
 </html>
