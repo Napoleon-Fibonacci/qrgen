@@ -59,12 +59,10 @@ vercel.json                    Header cache untuk Vercel
 
 ## Halaman pembaca (scan.html)
 
-Memindai QR code dan barcode (EAN, UPC, Code 128, dll.) lewat tiga cara:
+Memindai QR code dan barcode (EAN, UPC, Code 128, dll.) lewat dua cara:
 
 - **Kamera**: live scan lewat `getUserMedia`. Wajib HTTPS atau localhost.
 - **Berkas**: pilih atau seret gambar (JPG/PNG/WebP), hasil langsung terbaca.
-- **Tautan**: ambil gambar dari URL. Situs asal harus mengirim header CORS;
-  kalau tidak, pesan error di halaman menyarankan simpan gambar lalu pilih lewat Berkas.
 
 Pustaka html5-qrcode di-bundle lokal (tanpa CDN). Semua pemrosesan jalan di browser,
 tidak ada gambar yang dikirim ke server manapun. Hasil pemindaian hanya tampil

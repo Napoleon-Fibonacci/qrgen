@@ -1,8 +1,8 @@
 /* COST Pembaca QR & Barcode - lanjutan dari style.css (token COST yang sama) */
 
-/* Bar mode: muat pas isi 3 tombol, rata tengah di panel */
+/* Bar mode: muat pas isi 2 tombol, rata tengah di panel */
 .tabs {
-  grid-template-columns: repeat(3, max-content);
+  grid-template-columns: repeat(2, max-content);
   width: max-content;
   max-width: 100%;
   margin-inline: auto;

@@ -27,8 +27,7 @@
 
   var EMPTY_TEXT = {
     cam: 'Kamera mati.<br>Tekan Mulai kamera.',
-    file: 'Belum ada gambar.<br>Pilih gambar untuk mulai.',
-    url: 'Belum ada gambar.<br>Masukkan tautan lalu pindai.'
+    file: 'Belum ada gambar.<br>Pilih gambar untuk mulai.'
   };
 
   function fmtLabel(name) {
@@ -466,43 +465,6 @@
     }
     $('#file-name').textContent = f.name;
     handleImageBlob(f, 'gambar ini');
-  });
-
-  function scanUrl() {
-    var v = $('#url-input').value.trim();
-    if (!v) {
-      status('Isi tautan gambar dulu.', 'error');
-      return;
-    }
-    if (!/^https?:\/\//i.test(v)) v = 'https://' + v;
-    status('Mengambil gambar…', 'busy');
-    fetch(v)
-      .then(function (res) {
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return res.blob();
-      })
-      .then(function (blob) {
-        if (!/^image\//.test(blob.type)) throw new Error('bukan-gambar');
-        handleImageBlob(blob, 'gambar itu');
-      })
-      .catch(function (err) {
-        var msg = (err && err.message) || '';
-        if (/^HTTP \d+$/.test(msg)) {
-          status('Gambar gagal diunduh (' + msg + ').', 'error');
-        } else if (msg === 'bukan-gambar') {
-          status('Tautan itu bukan gambar.', 'error');
-        } else {
-          status('Gambar tidak bisa diambil dari situs itu. Simpan gambarnya, lalu pilih lewat Berkas.', 'error');
-        }
-      });
-  }
-
-  $('#url-go').addEventListener('click', scanUrl);
-  $('#url-input').addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      scanUrl();
-    }
   });
 
   /* ---------- Init ---------- */

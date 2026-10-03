@@ -18,8 +18,8 @@
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/chakra-petch-700.woff2" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/atkinson-hyperlegible-400.woff2" crossorigin>
   <link rel="stylesheet" href="assets/css/fonts.css?v=10">
-  <link rel="stylesheet" href="assets/css/style.css?v=25">
-  <link rel="stylesheet" href="assets/css/scan.css?v=19">
+  <link rel="stylesheet" href="assets/css/style.css?v=26">
+  <link rel="stylesheet" href="assets/css/scan.css?v=20">
 </head>
 <body>
 
@@ -50,7 +50,6 @@
       <div class="tabs" role="tablist" aria-label="Cara memindai">
         <button class="tab is-active" role="tab" id="tab-cam" data-mode="cam" aria-selected="true" aria-controls="panel-cam" type="button">Kamera</button>
         <button class="tab" role="tab" id="tab-file" data-mode="file" aria-selected="false" aria-controls="panel-file" type="button">Berkas</button>
-        <button class="tab" role="tab" id="tab-url" data-mode="url" aria-selected="false" aria-controls="panel-url" type="button">Tautan</button>
       </div>
 
       <div class="tabpane is-active" role="tabpanel" id="panel-cam" aria-labelledby="tab-cam">
@@ -73,15 +72,6 @@
           </label>
           <p class="hint">JPG, PNG, atau WebP. Foto layar atau hasil unduhan juga bisa.</p>
         </div>
-      </div>
-
-      <div class="tabpane" role="tabpanel" id="panel-url" hidden>
-        <div class="field">
-          <label for="url-input">Tautan gambar</label>
-          <input type="url" id="url-input" placeholder="https://contoh.sch.id/qr.png" inputmode="url" autocomplete="off">
-          <p class="hint">Situs asal harus mengizinkan gambar diambil dari halaman lain. Kalau tidak, simpan gambarnya lalu pilih lewat Berkas.</p>
-        </div>
-        <button type="button" class="btn btn-primary" id="url-go">Pindai tautan</button>
       </div>
 
       <section class="customize" aria-label="Hasil pemindaian">
@@ -120,6 +110,6 @@
   <noscript><p style="padding:16px">Aktifin JavaScript buat pakai pembaca ini.</p></noscript>
 
   <script src="vendor/html5-qrcode.min.js"></script>
-  <script src="assets/js/scan.js?v=5"></script>
+  <script src="assets/js/scan.js?v=6"></script>
 </body>
 </html>
