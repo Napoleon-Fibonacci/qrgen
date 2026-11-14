@@ -34,12 +34,8 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      # Runner ubuntu-latest sudah punya Android SDK + cmdline-tools.
-      # action setup-android tidak dipakai: gagal di runner image terbaru.
-      - name: Install Android SDK 36
-        run: |
-          yes | sdkmanager --licenses > /dev/null || true
-          sdkmanager "platforms;android-36" "build-tools;36.0.0" > /dev/null
+      # Runner ubuntu-latest sudah punya Android SDK 36 + lisensi diterima.
+      # Tidak install komponen manual: sdkmanager gagal di image terbaru.
 
       - run: npm ci
 
