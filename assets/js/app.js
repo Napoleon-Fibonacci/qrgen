@@ -101,20 +101,49 @@
     return IS_APP ? '' : path.replace(/^\/+/, '');
   }
 
+  // Capacitor vanilla (tanpa bundler): window.Capacitor.Plugins tidak ada.
+  // nativePromise() tersedia dari native bridge dan bisa memanggil plugin apa pun.
+  function pluginMethod(pluginName, method) {
+    var cap = window.Capacitor;
+    if (!IS_APP || !cap) return null;
+    var proxy = cap.Plugins && cap.Plugins[pluginName];
+    if (proxy && typeof proxy[method] === 'function') return proxy[method].bind(proxy);
+    if (typeof cap.nativePromise === 'function') {
+      return function (options) { return cap.nativePromise(pluginName, method, options); };
+    }
+    return null;
+  }
+
   // Kirim data URL gambar ke proxy upload. Gagal cepat kalau endpoint belum diatur.
+  // Di APK pakai CapacitorHttp: request keluar dari WebView, jadi bebas CORS.
   function postHost(dataUrl) {
     var url = apiUrl('api/host');
     if (!url) return Promise.reject(new Error('Endpoint upload belum diatur di build aplikasi ini'));
+
+    var post = pluginMethod('CapacitorHttp', 'post');
+    if (post) {
+      return post({
+        url: url,
+        headers: { 'Content-Type': 'application/json' },
+        data: { image: dataUrl },
+        connectTimeout: 15000,
+        readTimeout: 60000
+      }).then(function (r) {
+        return {
+          ok: r.status >= 200 && r.status < 300,
+          status: r.status,
+          text: function () {
+            return Promise.resolve(typeof r.data === 'string' ? r.data : JSON.stringify(r.data));
+          }
+        };
+      });
+    }
+
     return fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ image: dataUrl })
     });
-  }
-
-  // Plugin native Capacitor (tersedia di APK, kosong di browser biasa).
-  function plugin(name) {
-    return (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins[name]) || null;
   }
 
   function blobToBase64(blob) {
@@ -132,16 +161,16 @@
   // Di APK: tulis ke cache aplikasi lalu buka share sheet (pengguna pilih Simpan).
   // WebView Android tidak mendukung download blob lewat <a download>.
   function saveNative(blob, name) {
-    var fs = plugin('Filesystem');
-    var sh = plugin('Share');
-    if (!fs) return Promise.reject(new Error('Penyimpanan tidak tersedia'));
+    var writeFile = pluginMethod('Filesystem', 'writeFile');
+    var share = pluginMethod('Share', 'share');
+    if (!writeFile) return Promise.reject(new Error('Penyimpanan tidak tersedia'));
     return blobToBase64(blob)
       .then(function (data) {
-        return fs.writeFile({ path: name, data: data, directory: 'CACHE', recursive: true });
+        return writeFile({ path: name, data: data, directory: 'CACHE', recursive: true });
       })
       .then(function (file) {
-        if (!sh) return null;
-        return sh.share({ title: name, files: [file.uri] });
+        if (!share) return null;
+        return share({ title: name, files: [file.uri] });
       });
   }
 
@@ -164,6 +193,15 @@
   function isCancel(err) {
     var s = String((err && (err.message || err.name)) || '').toLowerCase();
     return s.indexOf('cancel') > -1 || s.indexOf('abort') > -1;
+  }
+
+  // Pesan error upload yang bisa dibaca, bukan "Failed to fetch".
+  function uploadError(err) {
+    var m = String((err && err.message) || err || '').trim();
+    if (/failed to fetch|network|connect|ssl|timeout|unreachable|err_/i.test(m)) {
+      return 'Tidak bisa menghubungi server upload. Cek internet lalu coba lagi.';
+    }
+    return m || 'coba lagi';
   }
 
   var qr = null;          // instance preview
@@ -730,7 +768,7 @@
         apply();
       }).catch(function (err) {
         setUploadBusy(false);
-        setImageStatus('Upload gagal: ' + ((err && err.message) || 'coba lagi'), 'error');
+        setImageStatus('Upload gagal: ' + uploadError(err), 'error');
         apply();
       });
     });
@@ -829,7 +867,7 @@
         addHistory(p);
       })
       .catch(function (err) {
-        toast('Upload gagal: ' + ((err && err.message) || 'coba lagi'));
+        toast('Upload gagal: ' + uploadError(err));
       })
       .then(function () {
         btn.disabled = false;
