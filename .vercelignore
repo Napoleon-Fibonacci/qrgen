@@ -1,0 +1,12 @@
+# Vercel hanya butuh situs statis + api/.
+# Shell Android dan tooling build tidak perlu di-deploy.
+android/
+www/
+scripts/
+.github/
+node_modules/
+package.json
+package-lock.json
+capacitor.config.json
+skills-lock.json
+.agents/

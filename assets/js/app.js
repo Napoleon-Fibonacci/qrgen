@@ -92,6 +92,80 @@
   var EXPORT_SIZE = 1024;
   var state = { type: 'url', color: '#111111', logo: null, logoSource: null, logoShape: 'circle', logoFit: 'cover', imageUrl: null };
 
+  // Endpoint upload: relatif di web, absolut di APK (lihat assets/js/config.js).
+  var API_BASE = String((window.QRCONFIG && window.QRCONFIG.apiBase) || '').replace(/\/+$/, '');
+  var IS_APP = !!(window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform());
+
+  function apiUrl(path) {
+    if (API_BASE) return API_BASE + path;
+    return IS_APP ? '' : path.replace(/^\/+/, '');
+  }
+
+  // Kirim data URL gambar ke proxy upload. Gagal cepat kalau endpoint belum diatur.
+  function postHost(dataUrl) {
+    var url = apiUrl('api/host');
+    if (!url) return Promise.reject(new Error('Endpoint upload belum diatur di build aplikasi ini'));
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: dataUrl })
+    });
+  }
+
+  // Plugin native Capacitor (tersedia di APK, kosong di browser biasa).
+  function plugin(name) {
+    return (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins[name]) || null;
+  }
+
+  function blobToBase64(blob) {
+    return new Promise(function (resolve, reject) {
+      var r = new FileReader();
+      r.onload = function () {
+        var s = String(r.result || '');
+        resolve(s.slice(s.indexOf(',') + 1));
+      };
+      r.onerror = function () { reject(new Error('Gagal membaca file')); };
+      r.readAsDataURL(blob);
+    });
+  }
+
+  // Di APK: tulis ke cache aplikasi lalu buka share sheet (pengguna pilih Simpan).
+  // WebView Android tidak mendukung download blob lewat <a download>.
+  function saveNative(blob, name) {
+    var fs = plugin('Filesystem');
+    var sh = plugin('Share');
+    if (!fs) return Promise.reject(new Error('Penyimpanan tidak tersedia'));
+    return blobToBase64(blob)
+      .then(function (data) {
+        return fs.writeFile({ path: name, data: data, directory: 'CACHE', recursive: true });
+      })
+      .then(function (file) {
+        if (!sh) return null;
+        return sh.share({ title: name, files: [file.uri] });
+      });
+  }
+
+  function browserDownload(blob, name) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+  }
+
+  function deliver(blob, name) {
+    return IS_APP ? saveNative(blob, name) : Promise.resolve(browserDownload(blob, name));
+  }
+
+  // Batal share bukan error: jangan tampilkan toast.
+  function isCancel(err) {
+    var s = String((err && (err.message || err.name)) || '').toLowerCase();
+    return s.indexOf('cancel') > -1 || s.indexOf('abort') > -1;
+  }
+
   var qr = null;          // instance preview
   var debounceTimer = 0;
 
@@ -493,13 +567,13 @@
   function downloadExt(ext) {
     var p = currentPayload();
     if (!p) return;
+    var name = fileName({ type: state.type, label: p.label, ext: ext });
     try {
       var tmp = makeTmp(ext);
-      tmp.download({
-        name: fileName({ type: state.type, label: p.label, ext: ext }),
-        extension: ext
-      }).then(function () { addHistory(p); })
-        .catch(function () { toast('Gagal download'); });
+      tmp.getRawData(ext)
+        .then(function (blob) { return deliver(blob, name); })
+        .then(function () { addHistory(p); })
+        .catch(function (err) { if (!isCancel(err)) toast('Gagal bikin file QR'); });
     } catch (err) {
       toast('Gagal bikin file QR');
     }
@@ -527,10 +601,22 @@
   $('#btn-share').addEventListener('click', function () {
     var p = currentPayload();
     if (!p) return;
+    var name = fileName({ type: state.type, label: p.label, ext: 'png' });
     var tmp = makeTmp('png');
+
+    if (IS_APP) {
+      tmp.getRawData('png')
+        .then(function (blob) { return saveNative(blob, name); })
+        .then(function () { addHistory(p); })
+        .catch(function (err) {
+          if (!isCancel(err)) toast('Gagal membagikan');
+        });
+      return;
+    }
+
     tmp.getRawData('png')
       .then(function (blob) {
-        var file = new File([blob], fileName({ type: state.type, label: p.label, ext: 'png' }), { type: 'image/png' });
+        var file = new File([blob], name, { type: 'image/png' });
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           return navigator.share({ files: [file], text: 'QR code: ' + p.label });
         }
@@ -623,11 +709,7 @@
         setImageStatus('Gagal membaca gambar', 'error');
         return;
       }
-      fetch('api/host', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: dataUrl })
-      }).then(function (res) {
+      postHost(dataUrl).then(function (res) {
         if (res.status === 404 || res.status === 405) {
           throw new Error('butuh deploy di Vercel dulu (preview ini statis)');
         }
@@ -726,13 +808,7 @@
     var tmp = new QRCodeStyling(exportOptions(p.data, 'png'));
     tmp.getRawData('png')
       .then(blobToDataUrl)
-      .then(function (dataUrl) {
-        return fetch('api/host', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: dataUrl })
-        });
-      })
+      .then(postHost)
       .then(function (res) {
         if (res.status === 404 || res.status === 405) {
           throw new Error('butuh deploy di Vercel dulu (preview ini statis)');
@@ -850,10 +926,10 @@
       bRedo.textContent = 'Download ulang';
       bRedo.addEventListener('click', function () {
         var tmp = new QRCodeStyling(histOptions(item, EXPORT_SIZE, Math.round(EXPORT_SIZE * 0.045), 'png'));
-        tmp.download({
-          name: fileName({ type: item.type, label: item.label, ext: 'png' }),
-          extension: 'png'
-        }).catch(function () { toast('Gagal download'); });
+        var name = fileName({ type: item.type, label: item.label, ext: 'png' });
+        tmp.getRawData('png')
+          .then(function (blob) { return deliver(blob, name); })
+          .catch(function (err) { if (!isCancel(err)) toast('Gagal download'); });
       });
       row.appendChild(bRedo);
 

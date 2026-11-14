@@ -1,0 +1,76 @@
+name: Android APK
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'assets/**'
+      - 'vendor/**'
+      - '*.html'
+      - 'scripts/**'
+      - 'android/**'
+      - 'capacitor.config.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/android.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK 36
+        run: |
+          yes | sdkmanager --licenses > /dev/null || true
+          sdkmanager "platforms;android-36" "build-tools;36.0.0" > /dev/null
+
+      - run: npm ci
+
+      - name: Check API_BASE
+        env:
+          API_BASE: ${{ vars.API_BASE }}
+        run: |
+          if [ -z "$API_BASE" ]; then
+            echo "::warning::Repo variable API_BASE kosong. Tombol Upload link akan gagal di APK."
+          else
+            echo "API_BASE=$API_BASE"
+          fi
+
+      - name: Build web assets
+        run: npm run build:web
+        env:
+          # Isi repo variable API_BASE dengan https://domain-vercel-kamu
+          QRCONFIG_API_BASE: ${{ vars.API_BASE }}
+
+      - run: npx cap sync android
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build debug APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cost-qrgen-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error

@@ -4,3 +4,11 @@
 node_modules/
 skills-lock.json
 .agents
+
+# Capacitor: aset web hasil build
+/www/
+
+# Android signing (jangan pernah commit)
+*.jks
+*.keystore
+keystore.properties

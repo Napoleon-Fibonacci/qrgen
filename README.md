@@ -2,7 +2,7 @@
 
 QR generator client-side ala situs COST (cost.biz.id) buat kebutuhan sekolah: link, WiFi, kontak (vCard), dan teks.
 Tanpa login, semua diproses di browser. Ada juga halaman `scan.html` untuk membaca QR code dan barcode
-lewat kamera, berkas gambar, atau tautan.
+lewat kamera atau berkas gambar. Situs ini juga bisa dibungkus jadi APK Android lewat Capacitor.
 
 ## Jalanin lokal
 
@@ -16,6 +16,34 @@ npx serve .
 Lalu buka http://localhost:8080
 
 Catatan: fitur "Upload link" tidak jalan lewat static server biasa, karena butuh runtime server (lihat di bawah).
+
+## Bikin APK Android
+
+APK dibungkus pakai Capacitor. Aset web disalin ke `www/`, lalu masuk ke WebView
+native. UI dan logika tidak ditulis ulang.
+
+Syarat di komputer: Node 22+, JDK 21, Android SDK 36.
+
+```
+npm install
+npm run cap:sync
+cd android && gradlew assembleDebug
+```
+
+Hasil: `android/app/build/outputs/apk/debug/app-debug.apk`.
+
+Lewat GitHub Actions (tanpa Java/SDK lokal):
+
+1. Buka **Settings > Secrets and variables > Actions > Variables**.
+2. Tambah variable `API_BASE`, isi `https://domain-vercel-kamu` (tanpa slash akhir).
+   Ini alamat `api/host` yang dipakai tombol Upload link di APK. Kalau kosong,
+   APK tetap jadi tapi tombol itu gagal.
+3. Push ke `main`, atau jalankan workflow **Android APK** manual dari tab Actions.
+4. Unduh artifact `cost-qrgen-debug-apk`.
+
+Workflow ada di `.github/workflows/android.yml`. Untuk APK release bertanda tangan,
+tambah keystore + 4 secret (`KEYSTORE`, `KEY_ALIAS`, `KEY_PASSWORD`, `STORE_PASSWORD`),
+lalu ganti `assembleDebug` jadi `assembleRelease` dan tambahkan langkah `apksigner`.
 
 ## Deploy ke Vercel
 
@@ -37,13 +65,20 @@ vercel --prod
 
 ```
 index.html                     Halaman utama (single page)
-scan.html                      Halaman pembaca QR & barcode (kamera / berkas / tautan)
+scan.html                      Halaman pembaca QR & barcode (kamera / berkas)
+package.json                   Dependency web + Capacitor
+capacitor.config.json          Konfigurasi shell Android
+scripts/build-www.mjs          Salin aset web ke www/ + isi endpoint upload
+android/                       Proyek Android native (Capacitor)
+.github/workflows/android.yml  Build APK di GitHub Actions
 api/host.js                    Serverless Function: proxy upload gambar ke 8upload
 assets/css/fonts.css           @font-face font lokal
 assets/css/style.css           Styling (token COST, light theme)
 assets/css/scan.css            Styling khusus halaman pembaca
+assets/js/config.js            Endpoint upload (kosong = same-origin)
+assets/js/native.js            Penyesuaian APK: tombol back Android
 assets/js/app.js               Logika app (builder payload, render, histori, export)
-assets/js/scan.js              Logika pembaca (kamera, file, URL, daftar hasil)
+assets/js/scan.js              Logika pembaca (kamera, file, daftar hasil)
 assets/fonts/*.woff2           Font COST (Chakra Petch + Atkinson Hyperlegible), latin subset
 assets/favicon.svg             Favicon
 assets/icon-192.png            Ikon PWA 192
@@ -54,7 +89,7 @@ vendor/qr-code-styling.min.js  Library QR (qr-code-styling 1.9.2, MIT)
 vendor/html5-qrcode.min.js     Library pindai (html5-qrcode 2.3.8, MIT)
 site.webmanifest               Manifest PWA
 robots.txt                     Aturan crawler
-vercel.json                    Header cache untuk Vercel
+vercel.json                    Header cache + keamanan untuk Vercel
 ```
 
 ## Halaman pembaca (scan.html)
@@ -73,6 +108,7 @@ di sesi halaman (tidak disimpan ke localStorage).
 Tombol **Upload link** mengirim QR (PNG 1024px) ke `api/host.js`, yang mem-proxy unggahan ke 8upload.com lalu mengembalikan URL gambarnya.
 
 - **Wajib jalan di Vercel.** Fungsi ini butuh runtime server. Di preview statis tombol akan menampilkan pesan error.
+- Di APK, endpoint diarahkan ke `API_BASE` (lihat bagian Bikin APK). Request dari WebView datang sebagai lintas situs, jadi `api/host.js` mengizinkan origin `https://localhost` lewat CORS.
 - Proxy diperlukan karena 8upload.com tidak mengirim header `Access-Control-Allow-Origin`, jadi browser tidak diizinkan membaca responsnya secara langsung.
 - Body request dibatasi default Vercel (4.5 MB). QR PNG 1024px jauh di bawah itu.
 
@@ -82,8 +118,13 @@ Tombol **Upload link** mengirim QR (PNG 1024px) ke `api/host.js`, yang mem-proxy
 - `hideBackgroundDots: false`. Kalau dinyalakan, library menghapus modul QR dalam area kotak, bukan mengikuti bentuk logo.
 - Logo di tengah: dibentuk bulat / rounded + ring putih 13%, sehingga logo punya ruang sendiri dan tidak menempel ke modul QR.
 - Export PNG selalu 1024px. Kalau ada logo, error correction naik ke level H.
+- Di web, ekspor memakai download browser. Di APK, file ditulis ke cache lalu dibuka
+  share sheet Android (plugin Filesystem + Share), karena WebView tidak bisa
+  mengunduh blob lewat `<a download>`.
 - Histori di `localStorage` (`qrgen_history_v1`), maksimal 50 item, perangkat saja.
 - Font dilokalkan (bukan CDN). Preload 2 font kritis ada di `index.html`.
+- Ikon launcher APK masih ikon default Capacitor. Ganti lewat
+  `npx @capacitor/assets generate` setelah menyiapkan `resources/icon.png` 1024px.
 
 ## Keamanan
 
@@ -92,8 +133,9 @@ Tombol **Upload link** mengirim QR (PNG 1024px) ke `api/host.js`, yang mem-proxy
   `Referrer-Policy`, HSTS, dan `Permissions-Policy` yang hanya mengizinkan kamera untuk
   situs sendiri.
 - `api/host.js` menolak permintaan lintas situs (`Sec-Fetch-Site`), membatasi payload
-  ~2 MB, dan hanya menerima tipe gambar. Endpoint masih tanpa autentikasi: klien
-  non-browser (curl) bisa memakainya. Kalau mulai disalahgunakan, tambahkan API key
+  ~2 MB, dan hanya menerima tipe gambar. Pengecualian: origin WebView APK
+  (`https://localhost`) diizinkan dengan header CORS. Endpoint masih tanpa autentikasi:
+  klien non-browser (curl) bisa memakainya. Kalau mulai disalahgunakan, tambahkan API key
   atau rate limit.
 - Halaman pembaca memindai gambar lewat `fetch` dari browser kamu. Tidak ada pemanggilan
   otomatis lewat parameter URL, jadi tidak ada pemindaian sendiri-dari-luar.

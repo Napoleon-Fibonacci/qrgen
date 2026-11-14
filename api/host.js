@@ -12,6 +12,15 @@
 const API = 'https://8upload.com';
 const UA = 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Mobile Safari/537.36';
 
+// Origin WebView Capacitor (Android + iOS). Request dari APK datang sebagai
+// lintas situs, jadi harus diizinkan eksplisit lewat CORS.
+const APP_ORIGINS = new Set([
+  'https://localhost',
+  'http://localhost',
+  'capacitor://localhost'
+]);
+
+
 function parseUploadPath(text) {
   if (typeof text !== 'string') return null;
   const t = text.trim();
@@ -36,16 +45,33 @@ function parseHotlink(html) {
 }
 
 module.exports = async function handler(req, res) {
+  const origin = req.headers.origin;
+  const fromApp = !!origin && APP_ORIGINS.has(origin);
+
+  // Izinkan preflight dari WebView APK; browser web tetap same-origin.
+  if (fromApp) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Vary', 'Origin');
+  }
+
+  if (req.method === 'OPTIONS') {
+    res.status(fromApp ? 204 : 403).end();
+    return;
+  }
+
   if (req.method !== 'POST') {
     res.status(405).json({ ok: false, error: 'Method not allowed' });
     return;
   }
 
-  // Tolak permintaan lintas situs dari browser (embed/link checker jahat).
+  // Tolak permintaan lintas situs dari browser (embed/link checker jahat),
+  // kecuali dari WebView aplikasi sendiri.
   // Catatan: ini pelindung tingkat browser; klien tanpa browser (curl)
   // tetap bisa lewat tanpa autentikasi, jadi jangan andalkan ini sendirian.
   const site = req.headers['sec-fetch-site'];
-  if (site && site !== 'same-origin' && site !== 'none') {
+  if (!fromApp && site && site !== 'same-origin' && site !== 'none') {
     res.status(403).json({ ok: false, error: 'Permintaan lintas situs ditolak' });
     return;
   }

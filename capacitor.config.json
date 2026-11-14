@@ -1,0 +1,13 @@
+{
+  "appId": "id.cost.qrgen",
+  "appName": "COST QR Generator",
+  "webDir": "www",
+  "backgroundColor": "#f0f3f8",
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": true
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}
