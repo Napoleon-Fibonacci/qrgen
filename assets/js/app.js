@@ -97,8 +97,9 @@
   var IS_APP = !!(window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform());
 
   function apiUrl(path) {
-    if (API_BASE) return API_BASE + path;
-    return IS_APP ? '' : path.replace(/^\/+/, '');
+    var clean = String(path).replace(/^\/+/, '');
+    if (API_BASE) return API_BASE + '/' + clean;
+    return IS_APP ? '' : clean;
   }
 
   // Capacitor vanilla (tanpa bundler): window.Capacitor.Plugins tidak ada.

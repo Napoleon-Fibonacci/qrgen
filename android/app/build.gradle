@@ -16,6 +16,17 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        // Keystore debug stabil, sengaja di-commit. Password publik.
+        // Tujuannya supaya APK dari tiap run CI punya signature sama dan bisa
+        // di-install menimpa versi lama tanpa uninstall. Jangan dipakai rilis.
+        debug {
+            storeFile file('debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false

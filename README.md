@@ -45,6 +45,10 @@ Workflow ada di `.github/workflows/android.yml`. Untuk APK release bertanda tang
 tambah keystore + 4 secret (`KEYSTORE`, `KEY_ALIAS`, `KEY_PASSWORD`, `STORE_PASSWORD`),
 lalu ganti `assembleDebug` jadi `assembleRelease` dan tambahkan langkah `apksigner`.
 
+`android/app/debug.keystore` sengaja di-commit dengan password publik (`android`).
+Fungsinya cuma bikin signature debug stabil antar-run CI, supaya APK baru bisa
+menimpa versi lama tanpa uninstall. Jangan dipakai untuk distribusi.
+
 ## Deploy ke Vercel
 
 1. Push folder ini ke repo GitHub, atau buka https://vercel.com/new lalu drag & drop foldernya.

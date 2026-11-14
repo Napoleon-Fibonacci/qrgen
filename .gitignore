@@ -12,3 +12,6 @@ skills-lock.json
 *.jks
 *.keystore
 keystore.properties
+
+# Pengecualian: debug keystore sengaja di-commit (password publik, debug only)
+!android/app/debug.keystore
